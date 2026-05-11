@@ -81,12 +81,25 @@ export default function RestaurantDetailScreen ({ navigation, route }) {
       >
         <TextRegular numberOfLines={2}>{item.description}</TextRegular>
         <TextSemiBold textStyle={styles.price}>{item.price.toFixed(2)}€</TextSemiBold>
+        {(item.scheduleId 
+          ? 
+          <TextRegular numberOfLines={1}>
+            <MaterialCommunityIcons name='timetable' color={GlobalStyles.brandGreen} size={20}/>
+            <TextRegular textStyle={styles.scheduled}>{item.schedule.startTime}-{item.schedule.endTime}</TextRegular>
+          </TextRegular>
+         : 
+          <TextRegular numberOfLines={1}>
+            <MaterialCommunityIcons name='timetable' color={GlobalStyles.brandPrimary} size={20}/>
+            <TextRegular textStyle={styles.notScheduled }>Not scheduled</TextRegular>
+          </TextRegular>
+        )}
+
         {!item.availability &&
           <TextRegular textStyle={styles.availability }>Not available</TextRegular>
         }
          <View style={styles.actionButtonsContainer}>
           <Pressable
-            onPress={() => navigation.navigate('EditProductScreen', { id: item.id })
+            onPress={() => navigation.navigate('EditProductScreen', { restaurantId: route.params.id, id: item.id })
             }
             style={({ pressed }) => [
               {
@@ -192,6 +205,16 @@ export default function RestaurantDetailScreen ({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+  scheduled: {
+    textAlign: 'left',
+    marginRight: 5,
+    color: GlobalStyles.brandGreen
+  },
+  notScheduled: {
+    textAlign: 'left',
+    marginRight: 5,
+    color: GlobalStyles.brandPrimary
+  },
   container: {
     flex: 1
   },

@@ -17,12 +17,14 @@ import { buildInitialValues } from '../Helper'
 import { getRestaurantSchedules } from '../../api/RestaurantEndpoints'
 
 export default function EditProductScreen ({ navigation, route }) {
-  const [open, setOpen] = useState(false)
+  const [opencat, setOpencat] = useState(false)
+  const [opensch, setOpensch] = useState(false)
   const [productCategories, setProductCategories] = useState([])
+  const [schedules, setSchedules] = useState([])
   const [backendErrors, setBackendErrors] = useState()
   const [product, setProduct] = useState()
 
-  const [initialProductValues, setInitialProductValues] = useState({ name: null, description: null, price: null, order: null, productCategoryId: null, availability: null, image: null })
+  const [initialProductValues, setInitialProductValues] = useState({ name: null, description: null, price: null, order: null, productCategoryId: null, availability: null, image: null , scheduleId: null})
   const validationSchema = yup.object().shape({
     name: yup
       .string()
@@ -43,7 +45,12 @@ export default function EditProductScreen ({ navigation, route }) {
       .number()
       .positive()
       .integer()
-      .required('Product category is required')
+      .required('Product category is required'),
+    scheduleId: yup
+      .number()
+      .positive()
+      .integer()
+      .optional()
   })
 
   useEffect(() => {
@@ -67,6 +74,29 @@ export default function EditProductScreen ({ navigation, route }) {
       }
     }
     fetchProductCategories()
+  }, [])
+
+  useEffect(() => {
+    async function fetchSchedules () {
+      try {
+        const fetchedSchedules = await getRestaurantSchedules(route.params.restaurantId)
+        const fetchedSchedulesReshaped = fetchedSchedules.map((e) => {
+          return {
+            label: e.startTime + ' - ' + e.endTime,
+            value: e.id
+          }
+        })
+        setSchedules(fetchedSchedulesReshaped)
+      } catch (error) {
+        showMessage({
+          message: `There was an error while retrieving schedules. ${error} `,
+          type: 'error',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      }
+    }
+    fetchSchedules()
   }, [])
 
   useEffect(() => {
@@ -146,13 +176,13 @@ export default function EditProductScreen ({ navigation, route }) {
                 name='order'
                 label='Order/position to be rendered:'
               />
-
+  
               <TextRegular textStyle={styles.textLabel}>Product category: </TextRegular>
               <DropDownPicker
-                open={open}
+                open={opencat}
                 value={values.productCategoryId}
                 items={productCategories}
-                setOpen={setOpen}
+                setOpen={setOpencat}
                 onSelectItem={item => {
                   setFieldValue('productCategoryId', item.value)
                 }}
@@ -163,6 +193,25 @@ export default function EditProductScreen ({ navigation, route }) {
                 dropDownStyle={{ backgroundColor: '#fafafa' }}
               />
               <ErrorMessage name={'productCategoryId'} render={msg => <TextError>{msg}</TextError> }/>
+
+              <TextRegular textStyle={styles.textLabel}>Schedules: </TextRegular>
+              <DropDownPicker
+                open={opensch}
+                value={values.scheduleId}
+                items={schedules}
+                setOpen={setOpensch}
+                onSelectItem={item => {
+                  setFieldValue('scheduleId', item.value)
+                }}
+                setItems={setSchedules}
+                placeholder="Select the schedule"
+                containerStyle={{ height: 40, marginBottom: 10 }}
+                style={{ backgroundColor: GlobalStyles.brandBackground }}
+                dropDownStyle={{ backgroundColor: '#fafafa' }}
+              />
+              <ErrorMessage name={'scheduleId'} render={msg => <TextError>{msg}</TextError> }/>
+
+
 
               <TextRegular textStyle={styles.textLabel}>Available:</TextRegular>
               <Switch
